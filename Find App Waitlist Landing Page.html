@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find - Natural language search for your files</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            padding-top: 80px; /* Space for fixed nav */
+        }
+
+        /* Section-specific gradients */
+        #home {
+            background: linear-gradient(to bottom, #FFFFFF, #F3E8FF);
+        }
+        
+        #product {
+            background: linear-gradient(to bottom, #F3E8FF, #E0F7FF);
+        }
+        
+        #team {
+            background: linear-gradient(to bottom, #E0F7FF, #DCFCE7);
+        }
+
+        .nav-container {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .nav-tabs {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 10px 20px;
+            display: flex;
+            gap: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(203, 213, 225, 0.4);
+        }
+
+        .nav-link {
+            color: #64748B;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #334155;
+            background: rgba(241, 245, 249, 0.7);
+        }
+
+        .nav-link.active {
+            color: #0F172A;
+            font-weight: 700;
+            background: rgba(241, 245, 249, 0.9);
+        }
+
+        .section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 640px;
+            width: 100%;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #0F172A;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #0F172A;
+        }
+
+        p {
+            font-size: 1.125rem;
+            font-weight: 300;
+            line-height: 1.6;
+            color: #334155;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        @media (min-width: 640px) {
+            .email-form {
+                flex-direction: row;
+            }
+            h1 {
+                font-size: 3rem;
+            }
+            h2 {
+                font-size: 2.5rem;
+            }
+        }
+
+        input[type="email"] {
+            flex-grow: 1;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(203, 213, 225, 0.8);
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            color: #334155;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease;
+        }
+
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #38BDF8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+        }
+
+        .honeypot {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 0;
+            width: 0;
+            z-index: -1;
+        }
+
+        button {
+            padding: 1rem 1.5rem;
+            background: #0EA5E9;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2);
+        }
+
+        button:hover {
+            background: #0284C7;
+            box-shadow: 0 6px 10px rgba(14, 165, 233, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .success-message {
+            color: #059669;
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0;
+            height: 0;
+            transition: opacity 0.3s ease, height 0.3s ease;
+        }
+
+        .success-message.visible {
+            opacity: 1;
+            height: auto;
+        }
+
+        .team-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 639px) {
+            .team-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 2rem;
+            }
+        }
+
+        .team-member {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 280px;
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 60px;
+            background-color: #E2E8F0;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94A3B8;
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .member-name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #0F172A;
+        }
+
+        .member-role {
+            color: #64748B;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 640px) {
+            .feature-list {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .feature-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #0F172A;
+        }
+
+        .feature-desc {
+            font-size: 0.95rem;
+            color: #334155;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="nav-tabs">
+            <a href="#home" class="nav-link active">Home</a>
+            <a href="#product" class="nav-link">Product</a>
+            <a href="#team" class="nav-link">Team</a>
+        </div>
+    </nav>
+
+    <section id="home" class="section">
+        <main class="container">
+            <h1>Find anything. Instantly.</h1>
+            <p>Search your files with everyday language</p>
+            
+            <div class="form-container">
+                <form class="email-form" id="waitlist-form">
+                    <input type="text" name="honeypot" class="honeypot" tabindex="-1" autocomplete="off">
+                    <input type="email" name="email" placeholder="Enter your email" required>
+                    <button type="submit">Join the Waitlist</button>
+                </form>
+            </div>
+            
+            <div class="success-message" id="success-message">
+                You're in! We'll keep you posted.
+            </div>
+        </main>
+    </section>
+
+    <section id="product" class="section">
+        <div class="container">
+            <h2>Our Product</h2>
+            <p>Find is a revolutionary app that understands how you think about your files.</p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-title">Natural Language Search</div>
+                    <div class="feature-desc">Ask for files the way you'd ask a human. "Show me the report I worked on last week" or "Find the design mockups from Sarah."</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-title">Universal File Support</div>
+                    <div class="feature-desc">Works with documents, images, spreadsheets, presentations, and more across all your cloud storage services.</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-title">Content-Aware Results</div>
+                    <div class="feature-desc">Find understands what's in your files, not just filenames and metadata.</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-title">Private & Secure</div>
+                    <div class="feature-desc">Your files and search queries stay private. We don't store or share your data.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="team" class="section">
+        <div class="container">
+            <h2>Our Team</h2>
+            <p>Meet the people building the future of file search.</p>
+            
+            <div class="team-container">
+                <div class="team-member">
+                    <div class="avatar">JH</div>
+                    <div class="member-name">Joshua Hou</div>
+                    <div class="member-role">CEO & Co-founder</div>
+                </div>
+                
+                <div class="team-member">
+                    <div class="avatar">KL</div>
+                    <div class="member-name">Kevin Li</div>
+                    <div class="member-role">CTO & Co-founder</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('waitlist-form');
+            const successMessage = document.getElementById('success-message');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            // Form submission handler
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Check honeypot field
+                const honeypot = form.querySelector('.honeypot');
+                if (honeypot.value) {
+                    return; // Likely a bot, silently ignore
+                }
+                
+                const emailInput = form.querySelector('input[type="email"]');
+                const email = emailInput.value.trim();
+                
+                if (!isValidEmail(email)) {
+                    alert('Please enter a valid email address.');
+                    return;
+                }
+                
+                // Show success message with animation
+                successMessage.classList.add('visible');
+                
+                // Clear the form
+                emailInput.value = '';
+                
+                // Optional: Hide success message after some time
+                setTimeout(() => {
+                    successMessage.classList.remove('visible');
+                }, 5000);
+            });
+            
+            function isValidEmail(email) {
+                const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(String(email).toLowerCase());
+            }
+            
+            // Navigation handler - Fixed to work correctly
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Update active class
+                    navLinks.forEach(navLink => navLink.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Update active nav based on scroll position
+            window.addEventListener('scroll', function() {
+                const scrollPosition = window.scrollY;
+                
+                // Determine which section is in view
+                const sections = document.querySelectorAll('.section');
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 100;
+                    const sectionBottom = sectionTop + section.offsetHeight;
+                    
+                    if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                        const sectionId = section.getAttribute('id');
+                        
+                        // Update active nav link
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + sectionId) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
